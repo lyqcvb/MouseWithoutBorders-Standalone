@@ -1019,10 +1019,10 @@ internal static class MachineStuff
                 Common.SendPackage(desMachineID, PackageType.HideMouse);
             }
 
+            SwitchLocation.Set(id, new Point(
+                Event.XY_BY_PIXEL + primaryScreenBounds.Left + ((primaryScreenBounds.Right - primaryScreenBounds.Left) / 2),
+                Event.XY_BY_PIXEL + primaryScreenBounds.Top + ((primaryScreenBounds.Bottom - primaryScreenBounds.Top) / 2)));
             NewDesMachineID = Common.DesMachineID = id;
-            SwitchLocation.X = Event.XY_BY_PIXEL + primaryScreenBounds.Left + ((primaryScreenBounds.Right - primaryScreenBounds.Left) / 2);
-            SwitchLocation.Y = Event.XY_BY_PIXEL + primaryScreenBounds.Top + ((primaryScreenBounds.Bottom - primaryScreenBounds.Top) / 2);
-            SwitchLocation.ResetCount();
             Common.UpdateMultipleModeIconAndMenu();
             Common.HideMouseCursor(false);
             _ = Common.EvSwitch.Set();
