@@ -4,6 +4,7 @@
 
 using System;
 
+using MouseWithoutBorders.Class;
 using MouseWithoutBorders.Core;
 
 namespace MouseWithoutBorders
@@ -15,6 +16,7 @@ namespace MouseWithoutBorders
             InitializeComponent();
 
             MachineStuff.ClearComputerMatrix();
+            UiLanguage.Apply(this);
         }
 
         private void NoButtonClick(object sender, EventArgs e)

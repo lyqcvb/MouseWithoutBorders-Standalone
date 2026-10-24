@@ -132,6 +132,34 @@ namespace MouseWithoutBorders
             base.OnMouseLeave(e);
         }
 
+        protected override void OnPaint(PaintEventArgs pe)
+        {
+            string caption = Name switch
+            {
+                "YesButton" => "Yes",
+                "NoButton" => "No",
+                "NextButton" => "Next",
+                "BackButton" => "Back",
+                "DoneButton" => "Done",
+                "LinkButton" => "Link",
+                "CloseButton" => "Close",
+                _ => null,
+            };
+            if (Class.UiLanguage.Language == "zh-CN" && caption != null)
+            {
+                // These legacy buttons bake English words into their bitmap. Draw a native
+                // button instead so its caption and disabled state follow the UI language.
+                ControlPaint.DrawButton(pe.Graphics, ClientRectangle,
+                    !Enabled ? ButtonState.Inactive : _buttonDown ? ButtonState.Pushed : ButtonState.Normal);
+                TextRenderer.DrawText(pe.Graphics, Class.UiLanguage.Text(caption), Font, ClientRectangle,
+                    Enabled ? SystemColors.ControlText : SystemColors.GrayText,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                return;
+            }
+
+            base.OnPaint(pe);
+        }
+
         private void UpdateEnabledState()
         {
             if (Enabled)

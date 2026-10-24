@@ -4,6 +4,7 @@
 
 using System;
 
+using MouseWithoutBorders.Class;
 using MouseWithoutBorders.Core;
 
 namespace MouseWithoutBorders
@@ -13,6 +14,7 @@ namespace MouseWithoutBorders
         public SetupPage5()
         {
             InitializeComponent();
+            UiLanguage.Apply(this);
         }
 
         private void DoneButtonClick(object sender, EventArgs e)

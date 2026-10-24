@@ -15,6 +15,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Windows.Forms;
 
+using MouseWithoutBorders.Class;
 using MouseWithoutBorders.Core;
 
 namespace MouseWithoutBorders
@@ -24,10 +25,10 @@ namespace MouseWithoutBorders
         internal FrmAbout()
         {
             InitializeComponent();
-            Text = string.Format(CultureInfo.CurrentCulture, "About {0}", AssemblyTitle);
+            Text = string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("About {0}"), AssemblyTitle);
             labelProductName.Text = string.Format(CultureInfo.CurrentCulture, "{0} {1}", AssemblyProduct, AssemblyVersion);
             labelCopyright.Text = AssemblyCopyright;
-            labelCompanyName.Text = "Project creator: Truong Do (Đỗ Đức Trường)";
+            labelCompanyName.Text = UiLanguage.Text("Project creator: Truong Do (Đỗ Đức Trường)");
 
             textBoxContributors.Text += "* Microsoft Garage: Quinn Hawkins, Michael Low, Joe Coplen, Nino Yuniardi, Gwyneth Marshall, David Andrews, Karen Luecking";
             textBoxContributors.Text += "\r\n* Peter Hauge\t\t- Visual Studio";
@@ -59,7 +60,10 @@ namespace MouseWithoutBorders
             textBoxContributors.Text += "\r\n* Loren Ponten\t\t- Surface Hub";
             textBoxContributors.Text += "\r\n* Paul Schmitt\t\t- WWL";
 
-            textBoxContributors.Text += "\r\n\r\n* And many other Users!";
+            textBoxContributors.Text += UiLanguage.Text("\r\n\r\n* And many other Users!");
+            labelProductName.Tag = "UserData";
+            labelCopyright.Tag = "UserData";
+            UiLanguage.Apply(this);
         }
 
         internal static string AssemblyTitle

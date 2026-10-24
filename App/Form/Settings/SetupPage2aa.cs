@@ -2,6 +2,8 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using MouseWithoutBorders.Class;
+
 namespace MouseWithoutBorders
 {
     public partial class SetupPage2aa : SetupPage2a
@@ -9,6 +11,7 @@ namespace MouseWithoutBorders
         public SetupPage2aa()
         {
             InitializeComponent();
+            UiLanguage.Apply(this);
         }
     }
 }

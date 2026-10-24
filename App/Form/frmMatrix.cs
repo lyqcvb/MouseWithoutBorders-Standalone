@@ -48,6 +48,8 @@ namespace MouseWithoutBorders
         private bool settingUpServiceMode;
         private int formOrgHeight;
         private bool matrixOneRow;
+        private bool refreshingLanguage;
+        private ComboBox languageSelector;
 
         internal FrmMatrix()
         {
@@ -60,6 +62,84 @@ namespace MouseWithoutBorders
             toolTipManual.ToolTipTitle = Application.ProductName;
             labelExitMM.Text = "Exit the application, Ctrl+Alt+Shift+:";
             textBoxMachineName2IP.Text = Setting.Values.Name2IP;
+            InitializeLanguageSelector();
+        }
+
+        private void InitializeLanguageSelector()
+        {
+            var panel = new FlowLayoutPanel
+            {
+                Name = "languagePanel",
+                Dock = DockStyle.Top,
+                Height = 34,
+                Padding = new Padding(8, 4, 8, 2),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+            };
+            panel.Controls.Add(new Label { Text = "语言 / Language", AutoSize = true, Margin = new Padding(0, 4, 8, 0) });
+            languageSelector = new ComboBox { Name = "languageSelector", DropDownStyle = ComboBoxStyle.DropDownList, Width = 130 };
+            languageSelector.Items.AddRange(new object[] { "简体中文", "English" });
+            languageSelector.SelectedIndex = UiLanguage.Language == "en-US" ? 1 : 0;
+            languageSelector.SelectedIndexChanged += (_, _) =>
+            {
+                Setting.Values.Language = languageSelector.SelectedIndex == 1 ? "en-US" : "zh-CN";
+                UiLanguage.SetLanguage(Setting.Values.Language);
+                RefreshLanguage();
+                Common.MainForm?.RefreshLanguage();
+            };
+            panel.Controls.Add(languageSelector);
+            Controls.Add(panel);
+            panel.SendToBack();
+            ClientSize = new Size(ClientSize.Width, ClientSize.Height + panel.Height);
+        }
+
+        internal void RefreshLanguage()
+        {
+            refreshingLanguage = true;
+            try
+            {
+                SuspendLayout();
+                UiLanguage.Apply(this, toolTip);
+                Text = Application.ProductName + " " + Application.ProductVersion + " - " + UiLanguage.Text("Settings");
+                comboBoxEasyMouseOption.Items.Clear();
+                comboBoxEasyMouseOption.Items.AddRange(new object[]
+                {
+                    UiLanguage.Text("Enable"), "Ctrl", "Shift", UiLanguage.Text("Disable"),
+                });
+                comboBoxEasyMouseOption.DropDownStyle = ComboBoxStyle.DropDownList;
+                RefreshEasyMouseOption();
+                foreach (ComboBox combo in new[] { comboBoxExitMM, comboBoxShowSettings, comboBoxLockMachine, comboBoxReconnect, comboBoxEasyMouse, comboBoxSwitchToAllPC })
+                {
+                    for (int i = 0; i < combo.Items.Count; i++)
+                    {
+                        if (combo.Items[i] is string value && (value is "Disable" or "Disabled" or "禁用" or "已禁用"))
+                        {
+                            combo.Items[i] = UiLanguage.Text("Disable");
+                        }
+                    }
+
+                    if (combo.Text is "Disable" or "Disabled" or "禁用" or "已禁用")
+                    {
+                        combo.Text = UiLanguage.Text("Disable");
+                    }
+                }
+            }
+            finally
+            {
+                ResumeLayout(true);
+                refreshingLanguage = false;
+            }
+        }
+
+        private void RefreshEasyMouseOption()
+        {
+            comboBoxEasyMouseOption.SelectedIndex = (EasyMouseOption)Setting.Values.EasyMouse switch
+            {
+                EasyMouseOption.Enable => 0,
+                EasyMouseOption.Ctrl => 1,
+                EasyMouseOption.Shift => 2,
+                _ => 3,
+            };
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -107,7 +187,7 @@ namespace MouseWithoutBorders
             if (Process.GetCurrentProcess().SessionId != NativeMethods.WTSGetActiveConsoleSessionId())
             {
                 Program.StartService();
-                Common.ShowToolTip("New settings applied on the physical console session!", 3000, ToolTipIcon.Warning, false);
+                Common.ShowToolTip(UiLanguage.Text("New settings applied on the physical console session!"), 3000, ToolTipIcon.Warning, false);
             }
             else
             {
@@ -401,7 +481,7 @@ namespace MouseWithoutBorders
             // 1 sec
             if (helperTimerCounter % 5 == 0)
             {
-                comboBoxEasyMouseOption.Text = ((EasyMouseOption)Setting.Values.EasyMouse).ToString();
+                RefreshEasyMouseOption();
 
                 if (!textBoxMachineName2IP.Text.Equals(Setting.Values.Name2IP, StringComparison.OrdinalIgnoreCase))
                 {
@@ -482,8 +562,7 @@ namespace MouseWithoutBorders
                     showInvalidKeyMessage = true;
 
                     Common.ShowToolTip(
-                        "Security Keys not matched.\r\nVerify that you entered the same key in all machines.\r\nAnd make sure you run the same version of "
-                        + Application.ProductName + " in all machines.\r\n" + keyNotMatchedMachines + "\r\nThis version: " + FrmAbout.AssemblyVersion,
+                        string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("Security Keys not matched.\r\nVerify that you entered the same key in all machines.\r\nAnd make sure you run the same version of {0} in all machines.\r\n{1}\r\nThis version: {2}"), Application.ProductName, keyNotMatchedMachines, FrmAbout.AssemblyVersion),
                         20000,
                         ToolTipIcon.Warning,
                         Setting.Values.ShowClipNetStatus);
@@ -499,7 +578,7 @@ namespace MouseWithoutBorders
 
         private void ShowKeyErrorMsg(string msg)
         {
-            Common.ShowToolTip(msg, 10000, ToolTipIcon.Error, false);
+            Common.ShowToolTip(UiLanguage.Text(msg), 10000, ToolTipIcon.Error, false);
             _ = textBoxEnc.Focus();
             textBoxEnc.SelectAll();
         }
@@ -849,10 +928,10 @@ namespace MouseWithoutBorders
                 return;
             }
 
-            string message = "Remove the " + Application.ProductName + " service as well?\r\n\r\nIt is no longer used once service mode is off.";
+            string message = string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("Remove the {0} service as well?\r\n\r\nIt is no longer used once service mode is off."), Application.ProductName);
             if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) != DialogResult.Yes)
             {
-                Common.ShowToolTip(Application.ProductName + " will no longer use the service. It stays registered until you remove it here or reinstall.", 8000, forceEvenIfHidingOldUI: true);
+                Common.ShowToolTip(string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("{0} will no longer use the service. It stays registered until you remove it here or reinstall."), Application.ProductName), 8000, forceEvenIfHidingOldUI: true);
                 return;
             }
 
@@ -1012,6 +1091,8 @@ namespace MouseWithoutBorders
                 textBoxMachineName2IPPolicyList.Visible = true;
                 textBoxMachineName2IPPolicyList.Text = Setting.Values.Name2IpPolicyList;
             }
+
+            RefreshLanguage();
         }
 
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
@@ -1076,7 +1157,7 @@ namespace MouseWithoutBorders
 
         private void ShowUpdateMessage()
         {
-            if (!formShown)
+            if (!formShown || refreshingLanguage)
             {
                 return;
             }
@@ -1165,10 +1246,19 @@ namespace MouseWithoutBorders
 
         private void ComboBoxEasyMouseOption_TextChanged(object sender, EventArgs e)
         {
-            string selectedOption = comboBoxEasyMouseOption.Text;
-            int oldEasyMouseOption = Setting.Values.EasyMouse;
+            if (refreshingLanguage || comboBoxEasyMouseOption.SelectedIndex < 0)
+            {
+                return;
+            }
 
-            Setting.Values.EasyMouse = Enum.TryParse<EasyMouseOption>(selectedOption, out EasyMouseOption easyMouseOption) ? (int)easyMouseOption : (int)EasyMouseOption.Enable;
+            int oldEasyMouseOption = Setting.Values.EasyMouse;
+            Setting.Values.EasyMouse = comboBoxEasyMouseOption.SelectedIndex switch
+            {
+                0 => (int)EasyMouseOption.Enable,
+                1 => (int)EasyMouseOption.Ctrl,
+                2 => (int)EasyMouseOption.Shift,
+                _ => (int)EasyMouseOption.Disable,
+            };
 
             if (oldEasyMouseOption != Setting.Values.EasyMouse)
             {
@@ -1215,8 +1305,7 @@ namespace MouseWithoutBorders
 
         private void ButtonNewKey_Click(object sender, EventArgs e)
         {
-            string message = "Do you really want to generate a new key?\r\n" +
-                "(You would need to enter this key in all other machines to re-establish the connections)";
+            string message = UiLanguage.Text("Do you really want to generate a new key?\r\n(You would need to enter this key in all other machines to re-establish the connections)");
 
             if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
@@ -1227,7 +1316,7 @@ namespace MouseWithoutBorders
                 checkBoxShowKey.Checked = true;
                 Encryption.GeneratedKey = true;
                 ButtonOK_Click(null, null);
-                Common.ShowToolTip("New security key was generated, update other machines to the same key.", 10000, ToolTipIcon.Info, false);
+                Common.ShowToolTip(UiLanguage.Text("New security key was generated, update other machines to the same key."), 10000, ToolTipIcon.Info, false);
             }
         }
 
@@ -1247,12 +1336,12 @@ namespace MouseWithoutBorders
             if (WindowState != FormWindowState.Minimized)
             {
                 groupBoxMachineMatrix.Top = groupBoxKeySetup.Top + groupBoxKeySetup.Height + 10;
-                groupBoxMachineMatrix.Height = ClientSize.Height - groupBoxKeySetup.Height - (int)(buttonOK.Height * 3.5);
+                groupBoxMachineMatrix.Height = tabControlSetting.Height - groupBoxKeySetup.Height - (int)(buttonOK.Height * 3.5);
                 checkBoxTwoRow.Top = groupBoxMachineMatrix.Height - (int)(checkBoxTwoRow.Height * 1.4);
                 buttonOK.Top = groupBoxMachineMatrix.Bottom + (int)(buttonOK.Height * 0.3);
                 buttonCancel.Top = groupBoxMachineMatrix.Bottom + (int)(buttonCancel.Height * 0.3);
-                groupBoxShortcuts.Height = ClientSize.Height - groupBoxOtherOptions.Bottom - 40;
-                groupBoxDNS.Height = ClientSize.Height - pictureBoxMouseWithoutBorders.Height - textBoxDNS.Height - 70;
+                groupBoxShortcuts.Height = tabControlSetting.Height - groupBoxOtherOptions.Bottom - 40;
+                groupBoxDNS.Height = tabControlSetting.Height - pictureBoxMouseWithoutBorders.Height - textBoxDNS.Height - 70;
             }
         }
 
@@ -1274,7 +1363,7 @@ namespace MouseWithoutBorders
             string miniLog = Helper.GetMiniLog(new[] { groupBoxOtherOptions.Controls, groupBoxShortcuts.Controls });
 
             Clipboard.SetText(miniLog);
-            Common.ShowToolTip("Log has been placed in the clipboard.", 30000, ToolTipIcon.Info, false);
+            Common.ShowToolTip(UiLanguage.Text("Log has been placed in the clipboard."), 30000, ToolTipIcon.Info, false);
         }
 
         private void ComboBoxScreenCapture_TextChanged(object sender, EventArgs e)
@@ -1284,10 +1373,7 @@ namespace MouseWithoutBorders
 
         private void LinkLabelReConfigure_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            string message = "WARNING: This will clear the Computer Matrix and allows you to run the setup experience like the first time you installed the program.\r\n";
-            message += "You need to start this setup experience in all machines. In the next Dialog, click NO in the first machine and click YES in the rest of the machines.\r\n";
-            message += "And then follow the steps to complete the configuration.\r\n\r\n";
-            message += "Are you sure you want to continue?";
+            string message = UiLanguage.Text("WARNING: This will clear the Computer Matrix and allows you to run the setup experience like the first time you installed the program.\r\nYou need to start this setup experience in all machines. In the next Dialog, click NO in the first machine and click YES in the rest of the machines.\r\nAnd then follow the steps to complete the configuration.\r\n\r\nAre you sure you want to continue?");
 
             if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == System.Windows.Forms.DialogResult.Yes)
             {

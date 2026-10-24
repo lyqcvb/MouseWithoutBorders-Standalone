@@ -2,6 +2,7 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using MouseWithoutBorders.Class;
 using MouseWithoutBorders.Core;
 
 namespace MouseWithoutBorders
@@ -15,6 +16,9 @@ namespace MouseWithoutBorders
             MachineNameLabel.Text = Common.MachineName.Trim();
             BackButtonVisible = true;
             Common.ReopenSockets(true);
+            SecurityCodeLabel.Tag = "UserData";
+            MachineNameLabel.Tag = "UserData";
+            UiLanguage.Apply(this);
         }
 
         protected override SettingsFormPage CreateBackPage()

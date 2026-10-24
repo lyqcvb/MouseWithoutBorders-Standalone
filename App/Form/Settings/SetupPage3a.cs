@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 
 using MouseWithoutBorders.Class;
@@ -40,12 +41,13 @@ namespace MouseWithoutBorders
         {
             InitializeComponent();
             _animationTimer = new System.Timers.Timer { Interval = 1000 };
+            UiLanguage.Apply(this);
         }
 
-        private void ShowStatus(string status)
+        private void ShowStatus(string status, params object[] args)
         {
-            labelStatus.Text = status;
-            Logger.Log(status);
+            labelStatus.Text = string.Format(CultureInfo.CurrentCulture, UiLanguage.Text(status), args);
+            Logger.Log(string.Format(CultureInfo.CurrentCulture, status, args));
         }
 
         public override void OnPageClosing()
@@ -68,7 +70,7 @@ namespace MouseWithoutBorders
             SocketStuff.InvalidKeyFound = false;
             SocketStuff.InvalidKeyFoundOnClientSocket = false;
 
-            ShowStatus($"Connecting...");
+            ShowStatus("Connecting...");
 
             MachineStuff.SwitchToMultipleMode(false, false);
             Common.ReopenSockets(true);
@@ -83,7 +85,7 @@ namespace MouseWithoutBorders
 
                 if ((connectedClientSocket = Common.GetConnectedClientSocket()) != null)
                 {
-                    ShowStatus($"Connected from local IP Address: {connectedClientSocket.Address}.");
+                    ShowStatus("Connected from local IP Address: {0}.", connectedClientSocket.Address);
                     InitAndCleanup.UpdateMachineTimeAndID();
 
                     Common.MMSleep(1);
@@ -119,7 +121,7 @@ namespace MouseWithoutBorders
             }
 
             ExamplePicture.Image = _frames[_animationFrame];
-            MessageLabel.Text = _messages[_animationFrame];
+            MessageLabel.Text = UiLanguage.Text(_messages[_animationFrame]);
             _animationTimer.Interval = _timing[_animationFrame];
             _animationFrame = (_animationFrame + 1) % _frames.Length;
 
@@ -136,15 +138,19 @@ namespace MouseWithoutBorders
                 if (invalidKey)
                 {
                     Common.ShowToolTip(
-                        "Security Codes not matched.\r\nVerify that you entered the same code in all machines.\r\nAnd make sure you run the same version of "
-                        + Application.ProductName + " in all machines.\r\nThis version: " + FrmAbout.AssemblyVersion,
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            UiLanguage.Text("Security Codes not matched.\r\nVerify that you entered the same code in all machines.\r\nAnd make sure you run the same version of {0} in all machines.\r\nThis version: {1}"),
+                            Application.ProductName,
+                            FrmAbout.AssemblyVersion),
                         20000);
                 }
                 else
                 {
-                    string helpText = "Connection error!";
-                    helpText += "\r\nPlease check if your machines are connected to the same network, note that " + Application.ProductName + " works better with wired connection.";
-                    helpText += "\r\nAnd double check if " + Application.ProductName + " is allowed through firewall in all machines.";
+                    string helpText = string.Format(
+                        CultureInfo.CurrentCulture,
+                        UiLanguage.Text("Connection error!\r\nPlease check if your machines are connected to the same network, note that {0} works better with wired connection.\r\nAnd double check if {0} is allowed through firewall in all machines."),
+                        Application.ProductName);
                     Common.ShowToolTip(helpText, 30000);
                 }
             }

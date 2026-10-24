@@ -78,6 +78,7 @@ namespace MouseWithoutBorders
             NotifyIcon.BalloonTipText = Application.ProductName;
             NotifyIcon.BalloonTipTitle = Application.ProductName;
             menuGenDumpFile.Visible = true;
+            RefreshLanguage();
 
             Helper.WndProcCounter++;
 
@@ -175,6 +176,11 @@ namespace MouseWithoutBorders
             MachineStuff.SwitchToMachine(name);
         }
 
+        internal void RefreshLanguage()
+        {
+            UiLanguage.Apply(MainMenu.Items);
+        }
+
         internal void UpdateMenu()
         {
             try
@@ -186,15 +192,15 @@ namespace MouseWithoutBorders
                     MainMenu.Items.Remove(MainMenu.Items[MainMenu.Items.Count - 1]);
                 }
 
-                while (!menuSendScreenCapture.DropDown.Items[
-                    menuSendScreenCapture.DropDown.Items.Count - 1].Text.Equals("Myself", StringComparison.OrdinalIgnoreCase))
+                while (menuSendScreenCapture.DropDown.Items[
+                    menuSendScreenCapture.DropDown.Items.Count - 1] != menuSend2Myself)
                 {
                     menuSendScreenCapture.DropDown.Items.Remove(menuSendScreenCapture.DropDown.Items[
                         menuSendScreenCapture.DropDown.Items.Count - 1]);
                 }
 
-                while (!menuGetScreenCapture.DropDown.Items[
-                    menuGetScreenCapture.DropDown.Items.Count - 1].Text.Equals("All", StringComparison.OrdinalIgnoreCase))
+                while (menuGetScreenCapture.DropDown.Items[
+                    menuGetScreenCapture.DropDown.Items.Count - 1] != menuGetFromAll)
                 {
                     menuGetScreenCapture.DropDown.Items.Remove(menuGetScreenCapture.DropDown.Items[
                         menuGetScreenCapture.DropDown.Items.Count - 1]);
@@ -211,7 +217,7 @@ namespace MouseWithoutBorders
                             null,
                             new EventHandler(MenuOnClick));
                         newItem.Tag = "MACHINE: " + inf.Name;
-                        newItem.ToolTipText = "Switch Mouse/keyboard to " + newMachine;
+                        newItem.ToolTipText = string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("Switch Mouse/keyboard to {0}"), newMachine);
                         newItem.Visible = true;
                         _ = MainMenu.Items.Add(newItem);
 
@@ -221,6 +227,7 @@ namespace MouseWithoutBorders
                                 inf.Name.Trim(),
                                 null,
                                 new EventHandler(MenuSendScreenCaptureClick));
+                            newItem2.Tag = "MACHINE: " + inf.Name;
                             newItem2.Visible = true;
                             _ = menuSendScreenCapture.DropDown.Items.Add(newItem2);
 
@@ -228,6 +235,7 @@ namespace MouseWithoutBorders
                                 inf.Name.Trim(),
                                 null,
                                 new EventHandler(MenuGetScreenCaptureClick));
+                            newItem3.Tag = "MACHINE: " + inf.Name;
                             newItem3.Visible = true;
                             _ = menuGetScreenCapture.DropDown.Items.Add(newItem3);
                         }
@@ -913,7 +921,7 @@ namespace MouseWithoutBorders
                     NotifyIcon.Visible = true;
                 }
 
-                NotifyIcon.ShowBalloonTip(timeOutInMilliseconds, Application.ProductName, txt, icon);
+                NotifyIcon.ShowBalloonTip(timeOutInMilliseconds, Application.ProductName, UiLanguage.Text(txt), icon);
                 if (forceEvenIfHidingOldUI)
                 {
                     NotifyIcon.Visible = oldNotifyVisibility;
@@ -928,7 +936,7 @@ namespace MouseWithoutBorders
 
             if (captureFile != null && File.Exists(captureFile))
             {
-                if (menuCaption.Equals("Myself", StringComparison.OrdinalIgnoreCase))
+                if (sender == menuSend2Myself)
                 {
                     Common.OpenImage(captureFile);
                 }
@@ -944,7 +952,7 @@ namespace MouseWithoutBorders
             string menuCaption = (sender as ToolStripMenuItem).Text;
 
             // Send CaptureScreenCommand
-            ID des = menuCaption.Equals("All", StringComparison.OrdinalIgnoreCase) ? ID.ALL : MachineStuff.IdFromName(menuCaption);
+            ID des = sender == menuGetFromAll ? ID.ALL : MachineStuff.IdFromName(menuCaption);
             Common.SendPackage(des, PackageType.CaptureScreenCommand);
         }
 

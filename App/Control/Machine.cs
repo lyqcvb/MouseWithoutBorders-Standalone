@@ -87,7 +87,7 @@ namespace MouseWithoutBorders
                 localhost = value;
                 if (localhost)
                 {
-                    labelStatusClient.Text = "local machine";
+                    labelStatusClient.Text = UiLanguage.Text("local machine");
                     labelStatusServer.Text = "...";
                     CheckAble = false;
                 }
@@ -116,6 +116,20 @@ namespace MouseWithoutBorders
         private void CheckBoxEnabled_CheckedChanged(object sender, EventArgs e)
         {
             MachineEnabled = checkBoxEnabled.Checked;
+        }
+
+        internal void RefreshLanguage()
+        {
+            if (localhost)
+            {
+                labelStatusClient.Text = UiLanguage.Text("local machine");
+                labelStatusServer.Text = "...";
+            }
+            else
+            {
+                labelStatusClient.Text = StatusString(statusClient) + " -->";
+                labelStatusServer.Text = StatusString(statusServer) + " <--";
+            }
         }
 
         private static string StatusString(SocketStatus status)
@@ -168,7 +182,7 @@ namespace MouseWithoutBorders
                     break;
             }
 
-            return rv;
+            return UiLanguage.Text(rv);
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]

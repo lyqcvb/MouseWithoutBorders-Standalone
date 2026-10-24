@@ -16,7 +16,7 @@ Mouse Without Borders (Standalone) 从 Microsoft PowerToys 的 Mouse Without Bor
 - **通过界面配置**：从托盘进入设置，调整电脑布局、配对密钥、快捷键和 IP 映射。
 - **按需启用服务模式**：可在设置中安装和启用服务；锁屏、登录桌面及 UAC 安全桌面等场景仍待独立版实测。
 
-当前保留原有 Windows Forms 设置界面，主要选项为英文。代码中也保留了文件拖放等能力，其实际体验尚待验证。
+设置界面支持简体中文和英文，默认中文。在设置窗口顶部的 **语言 / Language** 中选择语言，即时生效并自动保存，下次启动会沿用选择。代码中也保留了文件拖放等能力，其实际体验尚待验证。
 
 ## 安装与开始使用
 
@@ -25,8 +25,8 @@ Mouse Without Borders (Standalone) 从 Microsoft PowerToys 的 Mouse Without Bor
 如果已取得本项目安装包：
 
 1. 在需要共享键鼠的每台电脑上运行 `MouseWithoutBorders-Standalone-<版本号>-win-x64-Setup.exe`，按向导完成安装。
-2. 启动程序，从托盘打开设置，在 **Machine Setup** 中填写相同的 **Security Key**，添加参与共享的电脑名称并排列布局。
-3. 点击 **Apply**，等待对端显示 **Connected**，再使用切换快捷键测试键盘、鼠标与文本剪贴板。
+2. 启动程序，从托盘打开设置，在 **电脑设置（Machine Setup）** 中填写相同的 **安全密钥（Security Key）**，添加参与共享的电脑名称并排列布局。
+3. 点击 **应用（Apply）**，等待对端显示 **已连接（Connected）**，再使用切换快捷键测试键盘、鼠标与文本剪贴板。
 
 默认可用 `Ctrl+Alt+F1` 至 `Ctrl+Alt+F4` 按布局位置切换电脑；快捷键可在设置中调整。首次配置、服务模式和连接排障见[使用指南](docs/USAGE.md)。
 

@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -306,13 +307,15 @@ internal static class ServiceRegistration
         // The service name is shared with PowerToys and with other copies of this build, so a
         // foreign registration is shown before the install is allowed to re-point it.
         string message = state == ServiceInstallState.InstalledForAnotherPath
-            ? "A " + Application.ProductName + " service is installed for another copy:\r\n\r\n" +
-              (registeredPath ?? string.Empty) + "\r\n\r\n" +
-              "Point it at this copy and use it? Installing needs administrator approval; Windows will ask once."
-            : "Run " + Application.ProductName + " as a service?\r\n\r\n" +
-              "The service keeps the mouse and keyboard shared on the logon and lock screens. " +
-              "Installing it needs administrator approval; Windows will ask once.\r\n\r\n" +
-              "You can change this later in Settings > Other Options.";
+            ? string.Format(
+                CultureInfo.CurrentCulture,
+                UiLanguage.Text("A {0} service is installed for another copy:\r\n\r\n{1}\r\n\r\nPoint it at this copy and use it? Installing needs administrator approval; Windows will ask once."),
+                Application.ProductName,
+                registeredPath ?? string.Empty)
+            : string.Format(
+                CultureInfo.CurrentCulture,
+                UiLanguage.Text("Run {0} as a service?\r\n\r\nThe service keeps the mouse and keyboard shared on the logon and lock screens. Installing it needs administrator approval; Windows will ask once.\r\n\r\nYou can change this later in Settings > Other Options."),
+                Application.ProductName);
 
         if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) != DialogResult.Yes)
         {
@@ -346,13 +349,14 @@ internal static class ServiceRegistration
     /// </summary>
     internal static void OfferRestart()
     {
-        string message =
-            "The service is ready. Restart " + Application.ProductName + " now to use it?\r\n\r\n" +
-            "Until you restart, this window keeps running as before.";
+        string message = string.Format(
+            CultureInfo.CurrentCulture,
+            UiLanguage.Text("The service is ready. Restart {0} now to use it?\r\n\r\nUntil you restart, this window keeps running as before."),
+            Application.ProductName);
 
         if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) != DialogResult.Yes)
         {
-            Common.ShowToolTip("The service mode will be used the next time " + Application.ProductName + " starts.", 8000, forceEvenIfHidingOldUI: true);
+            Common.ShowToolTip(string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("The service mode will be used the next time {0} starts."), Application.ProductName), 8000, forceEvenIfHidingOldUI: true);
             return;
         }
 
@@ -384,7 +388,7 @@ internal static class ServiceRegistration
             Logger.Log(e);
             Common.MainForm.Text = Setting.Values.MyID;
             MachineStuff.AssertOneInstancePerDesktopSession();
-            _ = MessageBox.Show("Cannot restart " + Application.ProductName + ": " + e.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            _ = MessageBox.Show(string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("Cannot restart {0}: {1}"), Application.ProductName, e.Message), Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
@@ -396,11 +400,11 @@ internal static class ServiceRegistration
         switch (result)
         {
             case ServiceInstallResult.Cancelled:
-                return "Administrator approval was cancelled, so the service was not " + action + ".";
+                return UiLanguage.Text("Administrator approval was cancelled, so the service was not " + action + ".");
             case ServiceInstallResult.NotAvailable:
-                return "The service executable was not found next to " + Application.ProductName + ", so the service was not " + action + ".";
+                return string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("The service executable was not found next to {0}, so the service was not " + action + "."), Application.ProductName);
             default:
-                return "The service could not be " + action + ". See the " + Application.ProductName + " log for details.";
+                return string.Format(CultureInfo.CurrentCulture, UiLanguage.Text("The service could not be " + action + ". See the {0} log for details."), Application.ProductName);
         }
     }
 
