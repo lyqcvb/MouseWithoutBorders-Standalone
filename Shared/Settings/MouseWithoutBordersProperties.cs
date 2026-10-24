@@ -44,6 +44,9 @@ namespace Microsoft.PowerToys.Settings.UI.Library
         public StringProperty SecurityKey { get; set; }
 
         [CmdConfigureIgnore]
+        public string Language { get; set; } = "zh-CN";
+
+        [CmdConfigureIgnore]
         [JsonConverter(typeof(BoolPropertyJsonConverter))]
         public bool UseService { get; set; }
 

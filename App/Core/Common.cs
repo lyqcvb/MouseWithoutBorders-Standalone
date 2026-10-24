@@ -753,6 +753,7 @@ internal static class Common
         {
             DoSomethingInUIThread(() =>
             {
+                tip = UiLanguage.Text(tip);
                 if (Setting.Values.FirstRun)
                 {
                     MachineStuff.Settings?.ShowTip(icon, tip, timeOutInMilliseconds);

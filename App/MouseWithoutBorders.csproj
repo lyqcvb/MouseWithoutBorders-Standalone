@@ -275,6 +275,8 @@
     <EmbeddedResource Remove="Form\Settings\SettingsPage4.resx" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Properties\UiTranslations.json" />
+    <EmbeddedResource Include="Properties\SetupTranslations.json" />
     <EmbeddedResource Update="Properties\Images.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Images.Designer.cs</LastGenOutput>

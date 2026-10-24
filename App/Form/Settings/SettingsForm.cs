@@ -5,6 +5,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using MouseWithoutBorders.Class;
 using MouseWithoutBorders.Core;
 using MouseWithoutBorders.Form.Settings;
 
@@ -35,6 +36,8 @@ namespace MouseWithoutBorders
             {
                 SetControlPage(new SetupPage1());
             }
+
+            UiLanguage.Apply(this, toolTipManual);
         }
 
         protected override void OnFormClosing(System.Windows.Forms.FormClosingEventArgs e)
@@ -129,7 +132,10 @@ namespace MouseWithoutBorders
         internal void ShowTip(ToolTipIcon icon, string msg, int durationInMilliseconds)
         {
             int x = 0;
-            string text = msg + $"\r\n {(lastMessage.Equals(msg, StringComparison.OrdinalIgnoreCase) ? string.Empty : $"\r\nPrevious message/error: {lastMessage}")} ";
+            string previousMessage = lastMessage.Equals(msg, StringComparison.OrdinalIgnoreCase)
+                ? string.Empty
+                : "\r\n" + string.Format(System.Globalization.CultureInfo.CurrentCulture, UiLanguage.Text("Previous message/error: {0}"), lastMessage);
+            string text = msg + $"\r\n {previousMessage} ";
             lastMessage = msg;
             int y = (-text.Split(Separator, StringSplitOptions.None).Length * 15) - 30;
 

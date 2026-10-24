@@ -1,6 +1,6 @@
 # 使用指南
 
-本指南适用于 Mouse Without Borders (Standalone)。界面沿用英文选项名，便于对照操作。
+本指南适用于 Mouse Without Borders (Standalone)。界面默认使用简体中文，支持英文；下文保留英文选项名，便于对照两种语言。打开设置窗口，在顶部 **语言 / Language** 中选择 **简体中文** 或 **English**，切换立即生效并自动保存，无需重启。没有语言配置的旧版用户升级后默认使用中文。
 
 [返回项目首页](../README.md) · [安装包说明](../Installer/README.md) · [验证记录](VALIDATION.md)
 

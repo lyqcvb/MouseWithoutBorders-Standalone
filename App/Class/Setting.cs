@@ -244,6 +244,29 @@ namespace MouseWithoutBorders.Class
             _properties = settings.Properties;
         }
 
+        internal string Language
+        {
+            get
+            {
+                lock (_loadingSettingsLock)
+                {
+                    return UiLanguage.Normalize(_properties.Language);
+                }
+            }
+
+            set
+            {
+                lock (_loadingSettingsLock)
+                {
+                    _properties.Language = UiLanguage.Normalize(value);
+                    if (!PauseInstantSaving)
+                    {
+                        SaveSettings();
+                    }
+                }
+            }
+        }
+
         internal string Username { get; set; }
 
         internal bool IsMyKeyRandom { get; set; }

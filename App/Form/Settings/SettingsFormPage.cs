@@ -24,6 +24,7 @@ namespace MouseWithoutBorders
         public SettingsFormPage()
         {
             InitializeComponent();
+            UiLanguage.Apply(this);
         }
 
         public virtual void OnPageClosing()
@@ -53,7 +54,7 @@ namespace MouseWithoutBorders
         private void ButtonSkip_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show(
-                "It is strongly recommended that you complete the setup first! Are you sure you want to skip these steps?",
+                UiLanguage.Text("It is strongly recommended that you complete the setup first! Are you sure you want to skip these steps?"),
                 Application.ProductName,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning,

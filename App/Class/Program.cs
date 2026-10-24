@@ -165,6 +165,8 @@ namespace MouseWithoutBorders.Class
                     }
                 }
 
+                UiLanguage.SetLanguage(Setting.Values.Language);
+
                 ShutdownWithPowerToys.WaitForPowerToysRunner(etwTrace);
 
                 if (firstArg != string.Empty)

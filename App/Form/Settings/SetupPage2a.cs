@@ -48,6 +48,8 @@ namespace MouseWithoutBorders
             {
                 BackButtonVisible = false;
             }
+
+            UiLanguage.Apply(this);
         }
 
         protected override SettingsFormPage CreateBackPage()
@@ -90,7 +92,7 @@ namespace MouseWithoutBorders
             var key = Regex.Replace(SecurityCodeField.Text, @"\s+", string.Empty);
             if (!Encryption.IsKeyValid(key, out string error))
             {
-                Common.ShowToolTip(error, 10000, System.Windows.Forms.ToolTipIcon.Error, false);
+                Common.ShowToolTip(UiLanguage.Text(error), 10000, System.Windows.Forms.ToolTipIcon.Error, false);
                 _ = SecurityCodeField.Focus();
                 return;
             }

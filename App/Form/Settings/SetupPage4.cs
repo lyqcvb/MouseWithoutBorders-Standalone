@@ -14,6 +14,7 @@ namespace MouseWithoutBorders
         {
             Setting.Values.FirstRun = false;
             InitializeComponent();
+            UiLanguage.Apply(this);
         }
 
         private void NextButtonClick(object sender, EventArgs e)
