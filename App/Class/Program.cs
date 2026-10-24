@@ -52,9 +52,12 @@ namespace MouseWithoutBorders.Class
 {
     internal static class Program
     {
-        private static readonly string ServiceName = "PowerToys.MWB.Service";
+        private static readonly string ServiceName = Core.ServiceRegistration.ServiceName;
 
         private static readonly string ServiceModeArg = "UseService";
+
+        // ERROR_SERVICE_ALREADY_RUNNING: the service is up, which is what this start wanted.
+        private const int ERROR_SERVICE_ALREADY_RUNNING = 1056;
 
         public static bool ShowServiceModeErrorTooltip;
 
@@ -96,7 +99,13 @@ namespace MouseWithoutBorders.Class
 
                 Logger.Log(Environment.CommandLine);
 
-                bool serviceMode = firstArg == ServiceModeArg;
+                // The setting is the standalone build's replacement for the PowerToys module
+                // host, which used to pass UseService on the command line. It only applies to a
+                // plain launch: starts that carry a desktop argument (the restart watchdog, the
+                // helper) must run on that desktop as they do today. A SYSTEM instance must never
+                // take this branch either, or it would start the service again.
+                bool serviceMode = firstArg == ServiceModeArg
+                    || (!runningAsSystem && firstArg.Length == 0 && Setting.Values.UseService);
 
                 if (PowerToys.GPOWrapper.GPOWrapper.GetConfiguredMwbAllowServiceModeValue() == PowerToys.GPOWrapper.GpoRuleConfigured.Disabled)
                 {
@@ -113,16 +122,35 @@ namespace MouseWithoutBorders.Class
                 // assume the service mode.
                 if (serviceMode && !runningAsSystem)
                 {
+                    using var sc = new ServiceController(ServiceName);
+
                     try
                     {
-                        var sc = new ServiceController(ServiceName);
                         sc.Start();
-                        return;
+                    }
+                    catch (Exception ex) when (IsServiceAlreadyRunning(ex))
+                    {
+                        // The service is already up; the instances it started are what we are
+                        // waiting for, so this is not a failure.
+                        Logger.Log("The service is already running.");
                     }
                     catch (Exception ex)
                     {
                         Logger.Log("Couldn't start the service. Will try to continue as not a service.");
                         Logger.Log(ex);
+                        ShowServiceModeErrorTooltip = true;
+                        serviceMode = false;
+                        Setting.Values.UseService = false;
+                    }
+
+                    if (serviceMode)
+                    {
+                        if (WaitForServiceInstance(sc, TimeSpan.FromSeconds(20)))
+                        {
+                            return;
+                        }
+
+                        Logger.Log("The service started but did not start this program.");
                         ShowServiceModeErrorTooltip = true;
                         serviceMode = false;
                         Setting.Values.UseService = false;
@@ -257,6 +285,74 @@ namespace MouseWithoutBorders.Class
             {
                 Logger.Log(e);
             }
+        }
+
+        /// <summary>
+        /// <see cref="ServiceController.Start()"/> reports ERROR_SERVICE_ALREADY_RUNNING when the
+        /// service was started by another launch at the same moment or is still finishing the
+        /// previous one. .NET wraps the Win32 error in an <see cref="InvalidOperationException"/>.
+        /// </summary>
+        internal static bool IsServiceAlreadyRunning(Exception exception)
+        {
+            return exception is Win32Exception { NativeErrorCode: ERROR_SERVICE_ALREADY_RUNNING }
+                || exception.InnerException is Win32Exception { NativeErrorCode: ERROR_SERVICE_ALREADY_RUNNING };
+        }
+
+        /// <summary>
+        /// Waits until the service has started this program in another process. A service whose
+        /// binary path or arguments are wrong starts and immediately stops again, which used to
+        /// leave the program exiting on every start without any window; the caller falls back to
+        /// the normal mode instead.
+        /// </summary>
+        private static bool WaitForServiceInstance(ServiceController service, TimeSpan timeout)
+        {
+            Process me = Process.GetCurrentProcess();
+            DateTime deadline = DateTime.UtcNow + timeout;
+
+            while (DateTime.UtcNow < deadline)
+            {
+                foreach (Process process in Process.GetProcessesByName(Common.BinaryName))
+                {
+                    try
+                    {
+                        // The service starts its copies on the desktops of the active console
+                        // session, so a copy in another session means this session was not
+                        // served and waiting longer cannot change that.
+                        if (process.Id != me.Id && process.SessionId == me.SessionId)
+                        {
+                            Logger.Log($"The service started {Common.BinaryName} as process {process.Id}.");
+                            return true;
+                        }
+                    }
+                    catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+                    {
+                        // The process exited between the enumeration and the query.
+                    }
+                    finally
+                    {
+                        process.Dispose();
+                    }
+                }
+
+                // The service runs its child and then stops; once it is stopped and no child
+                // appeared, waiting any longer cannot help.
+                try
+                {
+                    service.Refresh();
+                    if (service.Status == ServiceControllerStatus.Stopped)
+                    {
+                        return false;
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+
+                Thread.Sleep(200);
+            }
+
+            return false;
         }
 
         private interface ISettingsSyncHelper

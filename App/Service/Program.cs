@@ -2,6 +2,7 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 
 using Microsoft.Extensions.Configuration;
@@ -26,24 +27,34 @@ namespace MouseWithoutBordersService
     internal sealed class Program
     {
         [STAThread]
-        private static void Main()
+        private static int Main()
         {
+            string[] args = Environment.GetCommandLineArgs();
+
+            // The standalone build registers the service itself; PowerToys normally does this
+            // from its module host. The service control manager starts this executable with the
+            // user's local app data as its only argument, so these commands cannot collide.
+            // They run before the policy check so the service can always be removed.
+            if (args.Length > 1 && TryRunMaintenanceCommand(args[1], out int exitCode))
+            {
+                return exitCode;
+            }
+
             if (PowerToys.GPOWrapper.GPOWrapper.GetConfiguredMouseWithoutBordersEnabledValue() == PowerToys.GPOWrapper.GpoRuleConfigured.Disabled
-                || PowerToys.GPOWrapper.GPOWrapper.GetConfiguredMwbAllowServiceModeValue() == PowerToys.GPOWrapper.GpoRuleConfigured.Disabled )
+                || PowerToys.GPOWrapper.GPOWrapper.GetConfiguredMwbAllowServiceModeValue() == PowerToys.GPOWrapper.GpoRuleConfigured.Disabled)
             {
                 // TODO: Add logging.
                 // Logger.LogWarning("Tried to start with a GPO policy setting the utility to always be disabled. Please contact your systems administrator.");
-                return;
+                return 0;
             }
 
-            string[] args = Environment.GetCommandLineArgs();
             CmdArgs.Value = args;
             var builder = Host.CreateDefaultBuilder(args);
 
             var host = builder
             .UseWindowsService(options =>
             {
-                options.ServiceName = "PowerToys.MWB.Service";
+                options.ServiceName = ServiceInstaller.ServiceName;
             })
             .ConfigureServices(services =>
             {
@@ -59,6 +70,40 @@ namespace MouseWithoutBordersService
             host.StopAsync();
 #pragma warning restore VSTHRD110 // Observe result of async calls
 #pragma warning restore VSTHRD101 // Avoid unsupported async delegates
+
+            return 0;
+        }
+
+        private static bool TryRunMaintenanceCommand(string command, out int exitCode)
+        {
+            exitCode = 0;
+
+            if (command.Equals("install", StringComparison.OrdinalIgnoreCase))
+            {
+                exitCode = ServiceInstaller.Install();
+                return true;
+            }
+
+            if (command.Equals("uninstall", StringComparison.OrdinalIgnoreCase)
+                || command.Equals("remove", StringComparison.OrdinalIgnoreCase))
+            {
+                exitCode = ServiceInstaller.Uninstall();
+                return true;
+            }
+
+            if (command.Equals("start", StringComparison.OrdinalIgnoreCase))
+            {
+                exitCode = ServiceInstaller.StartOrStop(true);
+                return true;
+            }
+
+            if (command.Equals("stop", StringComparison.OrdinalIgnoreCase))
+            {
+                exitCode = ServiceInstaller.StartOrStop(false);
+                return true;
+            }
+
+            return false;
         }
     }
 }

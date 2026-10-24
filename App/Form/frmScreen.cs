@@ -964,6 +964,10 @@ namespace MouseWithoutBorders
             {
                 Common.ShowToolTip("Couldn't start the service. Will continue as not a service. Service mode must be enabled in the Settings again.", 10000, forceEvenIfHidingOldUI: true);
             }
+
+            // Offers to register the service on first start. It does nothing when the setting is
+            // on, when the user already declined, or when this process was started by the service.
+            ServiceRegistration.PromptOnStartupIfNeeded();
         }
 
         private void MenuAbout_Click(object sender, EventArgs e)

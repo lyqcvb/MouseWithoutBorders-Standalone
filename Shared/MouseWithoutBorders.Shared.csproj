@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Narrow subset of the PowerToys shared libraries that Mouse Without Borders needs.
+    Each file keeps its original PowerToys MIT header; see Shared/README.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>MouseWithoutBorders.Shared</AssemblyName>
+    <RootNamespace>MouseWithoutBorders.Shared</RootNamespace>
+    <UseWindowsForms>false</UseWindowsForms>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Abstractions" />
+  </ItemGroup>
+</Project>

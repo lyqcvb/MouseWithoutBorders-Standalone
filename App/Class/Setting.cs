@@ -1296,6 +1296,30 @@ namespace MouseWithoutBorders.Class
         [JsonIgnore]
         internal bool AllowServiceModeIsGpoConfigured => GPOWrapper.GetConfiguredMwbAllowServiceModeValue() == GpoRuleConfigured.Disabled;
 
+        // Set once the user declines to install the service, so the startup prompt is shown once.
+        internal bool ServicePromptDismissed
+        {
+            get
+            {
+                lock (_loadingSettingsLock)
+                {
+                    return _properties.ServicePromptDismissed;
+                }
+            }
+
+            set
+            {
+                lock (_loadingSettingsLock)
+                {
+                    _properties.ServicePromptDismissed = value;
+                    if (!PauseInstantSaving)
+                    {
+                        SaveSettings();
+                    }
+                }
+            }
+        }
+
         // Note(@htcfreek): Settings UI CheckBox is disabled in frmMatrix.cs > FrmMatrix_Load()
         internal bool SendErrorLogV2
         {

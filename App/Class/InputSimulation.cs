@@ -18,7 +18,9 @@ using System.Threading.Tasks;
 
 using Microsoft.PowerToys.Settings.UI.Library;
 using MouseWithoutBorders.Core;
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
 using Windows.UI.Input.Preview.Injection;
+#endif
 
 using static MouseWithoutBorders.Class.NativeMethods;
 
@@ -29,12 +31,15 @@ namespace MouseWithoutBorders.Class
 {
     internal class InputSimulation
     {
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
         public static InputInjector Injector;
+#endif
 
         private InputSimulation()
         {
         }
 
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
         internal static InjectedInputMouseInfo MouseInputToInjectedInputMouseInfo(MOUSEINPUT mouseInput)
         {
             var injectedInput = new InjectedInputMouseInfo();
@@ -47,6 +52,7 @@ namespace MouseWithoutBorders.Class
 
             return injectedInput;
         }
+#endif
 
         private static uint SendInputEx(NativeMethods.INPUT input)
         {
@@ -79,11 +85,13 @@ namespace MouseWithoutBorders.Class
                     input64.mi.dwExtraInfo = input.mi.dwExtraInfo;
                 }
 
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
                 if (input.type == 0 && (input.mi.dwFlags & (int)NativeMethods.MOUSEEVENTF.MOVE) != 0 && NativeMethods.InjectMouseInputAvailable)
                 {
                     Injector.InjectMouseInput(new[] { MouseInputToInjectedInputMouseInfo(input64.mi) });
                 }
                 else
+#endif
                 {
                     NativeMethods.INPUT64[] inputs = { input64 };
                     rv = NativeMethods.SendInput64(1, inputs, Marshal.SizeOf(input64));
@@ -91,11 +99,13 @@ namespace MouseWithoutBorders.Class
             }
             else
             {
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
                 if (input.type == 0 && (input.mi.dwFlags & (int)NativeMethods.MOUSEEVENTF.MOVE) != 0 && NativeMethods.InjectMouseInputAvailable)
                 {
                     Injector.InjectMouseInput(new[] { MouseInputToInjectedInputMouseInfo(input.mi) });
                 }
                 else
+#endif
                 {
                     NativeMethods.INPUT[] inputs = { input };
                     rv = NativeMethods.SendInput(1, inputs, Marshal.SizeOf(input));
@@ -463,7 +473,17 @@ namespace MouseWithoutBorders.Class
                         if (ctrlDown && altDown)
                         {
                             ctrlDown = altDown = false;
-                            new ServiceController("MouseWithoutBordersSvc").Start(Args);
+
+                            // The standalone build registers the service under the same name
+                            // PowerToys uses (App/Service/ServiceInstaller.cs).
+                            try
+                            {
+                                new ServiceController(ServiceRegistration.ServiceName).Start(Args);
+                            }
+                            catch (System.InvalidOperationException e)
+                            {
+                                Logger.Log(e);
+                            }
                         }
 
                         break;

@@ -56,15 +56,16 @@ namespace MouseWithoutBorders
 
                 if (command.Equals("SvcExec", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\MouseWithoutBorders.exe", "\"" + arg + "\"");
+                    Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\PowerToys.MouseWithoutBorders.exe", "\"" + arg + "\"");
                 }
                 else if (command.Equals("install", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\MouseWithoutBorders.exe");
+                    Process.Start(Path.GetDirectoryName(Application.ExecutablePath) + "\\PowerToys.MouseWithoutBorders.exe");
                 }
                 else if (command.Equals("help-ex", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.Start(@"http://www.aka.ms/mm");
+                    // Shell execution is required to open a URL with the default browser.
+                    Process.Start(new ProcessStartInfo(@"http://www.aka.ms/mm") { UseShellExecute = true });
                 }
                 else if (command.Equals("InternalError", StringComparison.OrdinalIgnoreCase))
                 {

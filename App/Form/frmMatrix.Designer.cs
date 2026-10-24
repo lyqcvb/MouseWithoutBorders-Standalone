@@ -58,6 +58,7 @@ namespace MouseWithoutBorders
             this.checkBoxSameSubNet = new System.Windows.Forms.CheckBox();
             this.checkBoxClipNetStatus = new System.Windows.Forms.CheckBox();
             this.checkBoxSendLog = new System.Windows.Forms.CheckBox();
+            this.checkBoxRunAsService = new System.Windows.Forms.CheckBox();
             this.groupBoxKeySetup = new System.Windows.Forms.GroupBox();
             this.buttonNewKey = new System.Windows.Forms.Button();
             this.textBoxEnc = new System.Windows.Forms.TextBox();
@@ -549,6 +550,20 @@ namespace MouseWithoutBorders
             this.checkBoxSendLog.UseVisualStyleBackColor = true;
             this.checkBoxSendLog.Visible = false;
             this.checkBoxSendLog.CheckedChanged += new System.EventHandler(this.CheckBoxSendLog_CheckedChanged);
+            //
+            // checkBoxRunAsService
+            //
+            this.checkBoxRunAsService.AutoSize = true;
+            this.checkBoxRunAsService.Location = new System.Drawing.Point(268, 163);
+            this.checkBoxRunAsService.Name = "checkBoxRunAsService";
+            this.checkBoxRunAsService.Size = new System.Drawing.Size(115, 18);
+            this.checkBoxRunAsService.TabIndex = 179;
+            this.checkBoxRunAsService.Text = "&Run as a service";
+            this.toolTip.SetToolTip(this.checkBoxRunAsService, "Keep the mouse and keyboard shared on the logon and lock screens. Installing the s" +
+        "ervice needs administrator approval.");
+            this.checkBoxRunAsService.UseCompatibleTextRendering = true;
+            this.checkBoxRunAsService.UseVisualStyleBackColor = true;
+            this.checkBoxRunAsService.CheckedChanged += new System.EventHandler(this.CheckBoxRunAsService_CheckedChanged);
             // 
             // groupBoxKeySetup
             // 
@@ -668,6 +683,7 @@ namespace MouseWithoutBorders
             // groupBoxOtherOptions
             // 
             this.groupBoxOtherOptions.Controls.Add(this.checkBoxTransferFile);
+            this.groupBoxOtherOptions.Controls.Add(this.checkBoxRunAsService);
             this.groupBoxOtherOptions.Controls.Add(this.checkBoxSendLog);
             this.groupBoxOtherOptions.Controls.Add(this.checkBoxClipNetStatus);
             this.groupBoxOtherOptions.Controls.Add(this.checkBoxSameSubNet);
@@ -1195,6 +1211,7 @@ namespace MouseWithoutBorders
         private CheckBox checkBoxSameSubNet;
         private CheckBox checkBoxClipNetStatus;
         private CheckBox checkBoxSendLog;
+        private CheckBox checkBoxRunAsService;
         private GroupBox groupBoxKeySetup;
         private Button buttonNewKey;
         private TextBox textBoxEnc;

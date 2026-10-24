@@ -10,7 +10,9 @@ using System.Threading;
 
 using Microsoft.Win32;
 using MouseWithoutBorders.Class;
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
 using Windows.UI.Input.Preview.Injection;
+#endif
 
 // <summary>
 //     Initialization and clean up.
@@ -104,6 +106,7 @@ internal static class InitAndCleanup
             Logger.Log(e.Message);
         }
 
+#if !STANDALONE_WITHOUT_INPUTINJECTOR
         try
         {
             InputSimulation.Injector = InputInjector.TryCreate();
@@ -118,6 +121,11 @@ internal static class InitAndCleanup
             NativeMethods.InjectMouseInputAvailable = false;
             Logger.Log($"{nameof(NativeMethods.InjectMouseInputAvailable)} = false");
         }
+#else
+        // The WinRT InputInjector projection is not part of this standalone build;
+        // mouse input goes through SendInput (NativeMethods.InjectMouseInputAvailable stays false).
+        NativeMethods.InjectMouseInputAvailable = false;
+#endif
 
         bool dummy = Setting.Values.DrawMouseEx;
         Common.Is64bitOS = IntPtr.Size == 8;

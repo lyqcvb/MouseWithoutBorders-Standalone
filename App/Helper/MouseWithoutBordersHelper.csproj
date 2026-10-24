@@ -1,21 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Look at Directory.Build.props in root for common stuff as well -->
-  <Import Project="$(RepoRoot)src\Common.Dotnet.CsWinRT.props" />	
-  <Import Project="$(RepoRoot)src\Common.SelfContained.props" />
-  
+  <!--
+    Clipboard and drag-drop helper process. The main application starts it from its own
+    directory (see App/Core/Helper.cs), so App/MouseWithoutBorders.csproj builds this project
+    first and copies its output next to PowerToys.MouseWithoutBorders.exe.
+
+    Three files are linked from the application instead of being duplicated; MM_HELPER selects
+    the helper side of their conditional compilation.
+  -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <AssemblyName>PowerToys.MouseWithoutBordersHelper</AssemblyName>    
-    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>    
+    <AssemblyName>PowerToys.MouseWithoutBordersHelper</AssemblyName>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-    <OutputPath>$(RepoRoot)$(Platform)\$(Configuration)</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>..\Logo.ico</ApplicationIcon>
     <NoWin32Manifest>true</NoWin32Manifest>
-
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -27,23 +30,6 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <NoWarn />
   </PropertyGroup>
-
-  <!-- See https://learn.microsoft.com/windows/apps/develop/platform/csharp-winrt/net-projection-from-cppwinrt-component for more info -->
-  <PropertyGroup>
-    <CsWinRTIncludes>PowerToys.GPOWrapper</CsWinRTIncludes>
-    <CsWinRTGeneratedFilesDir>$(OutDir)</CsWinRTGeneratedFilesDir>
-    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Resources\**" />
-    <Compile Remove="Service\**" />
-    <EmbeddedResource Remove="Resources\**" />
-    <EmbeddedResource Remove="Service\**" />
-    <ExcludeFromStyleCop Remove="Service\**" />
-    <None Remove="Resources\**" />
-    <None Remove="Service\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\Class\IClipboardHelper.cs">
@@ -58,22 +44,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="MouseWithoutBordersHelper.exe.manifest">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <!-- Including MessagePack to force version, since it's used by StreamJsonRpc but contains vulnerabilities. After StreamJsonRpc updates the version of MessagePack, we can upgrade StreamJsonRpc instead. -->
     <PackageReference Include="MessagePack" />
     <!-- HACK: To align Microsoft.Bcl.AsyncInterfaces.dll version with Advanced Paste version (from the Semantic Kernel dependency). -->
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="StreamJsonRpc" />
+    <!-- Used directly by the linked IClipboardHelper.cs. -->
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\common\GPOWrapper\GPOWrapper.vcxproj" />
-    <ProjectReference Include="..\..\..\..\settings-ui\Settings.UI.Library\Settings.UI.Library.csproj" />
+    <ProjectReference Include="..\..\Shared\MouseWithoutBorders.Shared.csproj" />
   </ItemGroup>
-  <PropertyGroup>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-  </PropertyGroup>
 </Project>

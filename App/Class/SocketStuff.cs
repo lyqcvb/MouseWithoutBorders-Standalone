@@ -2113,7 +2113,7 @@ namespace MouseWithoutBorders.Class
                     }
 
                     _ = Launch.CreateLowIntegrityProcess(
-                        "\"" + Path.GetDirectoryName(Application.ExecutablePath) + "\\MouseWithoutBordersHelper.exe\"",
+                        "\"" + Path.GetDirectoryName(Application.ExecutablePath) + "\\PowerToys.MouseWithoutBordersHelper.exe\"",
                         "InternalError" + " \"" + msg + "\"",
                         0,
                         false,

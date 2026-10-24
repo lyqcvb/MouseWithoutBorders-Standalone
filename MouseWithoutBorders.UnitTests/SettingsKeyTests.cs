@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation
+﻿// Copyright (c) Microsoft Corporation
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -30,7 +30,7 @@ public sealed class SettingsKeyTests
     [TestMethod]
     public void SettingsListenerStartsAfterKeyInitializationOnUserDesktop()
     {
-        var source = ReadRepositorySource(@"src\modules\MouseWithoutBorders\App\Class\Program.cs");
+        var source = ReadRepositorySource(@"App\Class\Program.cs");
         var initialization = source.IndexOf("InitAndCleanup.Init();", StringComparison.Ordinal);
         var listener = source.IndexOf("StartSettingSyncThread();", StringComparison.Ordinal);
 
@@ -42,12 +42,12 @@ public sealed class SettingsKeyTests
     [TestMethod]
     public void LegacyFormsValidateBeforeChangingPairingState()
     {
-        var matrix = ReadRepositorySource(@"src\modules\MouseWithoutBorders\App\Form\frmMatrix.cs");
+        var matrix = ReadRepositorySource(@"App\Form\frmMatrix.cs");
         StringAssert.Contains(matrix, "UpdateKey(Regex.Replace(textBoxEnc.Text, @\"\\s+\", string.Empty))");
         var update = matrix[matrix.IndexOf("private bool UpdateKey(", StringComparison.Ordinal)..];
         Assert.IsTrue(update.IndexOf("Encryption.IsKeyValid(newKey,", StringComparison.Ordinal) < update.IndexOf("Setting.Values.MyKey = newKey;", StringComparison.Ordinal));
 
-        var wizard = ReadRepositorySource(@"src\modules\MouseWithoutBorders\App\Form\Settings\SetupPage2a.cs");
+        var wizard = ReadRepositorySource(@"App\Form\Settings\SetupPage2a.cs");
         StringAssert.Contains(wizard, "Encryption.IsKeyValid(Regex.Replace(SecurityCodeField.Text, @\"\\s+\", string.Empty), out _)");
         var click = wizard[wizard.IndexOf("private void LinkButtonClick(", StringComparison.Ordinal)..];
         var validation = click.IndexOf("if (!Encryption.IsKeyValid(key,", StringComparison.Ordinal);
@@ -70,6 +70,52 @@ public sealed class SettingsKeyTests
 
         Assert.IsNotNull(directory, "Repository source must be available for the wiring check.");
         return File.ReadAllText(Path.Combine(directory.FullName, relativePath));
+    }
+
+    [TestMethod]
+    public void SettingsUpgradeEnablesTheLegacyUserInterface()
+    {
+        // The standalone build has no PowerToys Settings page. A file that was written by an
+        // install that relied on it would otherwise leave the user with no interface at all.
+        var settings = new MouseWithoutBordersSettings { Version = "1.1" };
+        settings.Properties.ShowOriginalUI = false;
+
+        Assert.IsTrue(settings.UpgradeSettingsConfiguration());
+        Assert.AreEqual("1.2", settings.Version);
+        Assert.IsTrue(settings.Properties.ShowOriginalUI);
+    }
+
+    [TestMethod]
+    public void SettingsUpgradeKeepsTheLegacyUserInterfaceForCurrentFiles()
+    {
+        var settings = new MouseWithoutBordersSettings { Version = "1.2" };
+        settings.Properties.ShowOriginalUI = false;
+
+        Assert.IsFalse(settings.UpgradeSettingsConfiguration());
+        Assert.AreEqual("1.2", settings.Version);
+        Assert.IsFalse(settings.Properties.ShowOriginalUI);
+    }
+
+    [TestMethod]
+    public void NewSettingsShowTheLegacyUserInterface()
+    {
+        var properties = new MouseWithoutBordersProperties();
+
+        Assert.IsTrue(properties.ShowOriginalUI, "The tray icon and the settings window are the only interface the standalone build has.");
+        Assert.IsFalse(properties.UseService);
+        Assert.IsFalse(properties.ServicePromptDismissed);
+    }
+
+    [TestMethod]
+    public void ServicePromptIsOnlyDismissedOnce()
+    {
+        var properties = new MouseWithoutBordersProperties();
+        Assert.IsFalse(properties.ServicePromptDismissed);
+
+        properties.ServicePromptDismissed = true;
+        var reloaded = JsonSerializer.Deserialize(JsonSerializer.Serialize(properties, SettingsSerializationContext.Default.MouseWithoutBordersProperties), SettingsSerializationContext.Default.MouseWithoutBordersProperties)!;
+
+        Assert.IsTrue(reloaded.ServicePromptDismissed);
     }
 
     [TestMethod]
@@ -169,7 +215,7 @@ public sealed class SettingsKeyTests
     public void KeySetterKeepsInstantSavingOutsideCiphertextReplacement()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        const string relativePath = @"src\modules\MouseWithoutBorders\App\Class\Setting.cs";
+        const string relativePath = @"App\Class\Setting.cs";
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, relativePath)))
         {
             directory = directory.Parent;
@@ -477,9 +523,9 @@ public sealed class SettingsKeyTests
     public void LegacyStartupModeMismatchSourceContract()
     {
         // WinForms startup cannot run in this unit test; check its wiring to the runtime-tested settings boundary.
-        var startup = ReadRepositorySource(@"src\modules\MouseWithoutBorders\App\Core\InitAndCleanup.cs");
+        var startup = ReadRepositorySource(@"App\Core\InitAndCleanup.cs");
         StringAssert.Contains(startup, "Encryption.KeyCorrupted = !Setting.Values.IsPairingKeyModeMismatch;");
-        var matrix = ReadRepositorySource(@"src\modules\MouseWithoutBorders\App\Core\MachineStuff.cs");
+        var matrix = ReadRepositorySource(@"App\Core\MachineStuff.cs");
         matrix = matrix[matrix.IndexOf("internal static void ShowMachineMatrix()", StringComparison.Ordinal)..];
         StringAssert.Contains(matrix, "if (!Setting.Values.ShowOriginalUI)");
         StringAssert.Contains(matrix, "if (Setting.Values.FirstRun && !Setting.Values.IsPairingKeyModeMismatch && !Common.AtLeastOneSocketConnected())");

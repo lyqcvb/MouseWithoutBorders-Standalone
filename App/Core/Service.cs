@@ -43,7 +43,12 @@ internal static class Service
 
         Task task = Task.Run(() =>
         {
-            Process[] ps = Process.GetProcessesByName("MouseWithoutBordersSvc");
+            // The service name PowerToys registers and the standalone installer creates
+            // (App/Service/ServiceInstaller.cs) differs from its executable name.
+            const string serviceName = ServiceRegistration.ServiceName;
+            const string serviceProcessName = "PowerToys.MouseWithoutBordersService";
+
+            Process[] ps = Process.GetProcessesByName(serviceProcessName);
 
             if (ps.Length != 0)
             {
@@ -55,13 +60,13 @@ internal static class Service
 
                 foreach (Process pp in ps)
                 {
-                    Logger.Log(string.Format(CultureInfo.InvariantCulture, "Killing process MouseWithoutBordersSvc {0}.", pp.Id));
+                    Logger.Log(string.Format(CultureInfo.InvariantCulture, "Killing process {0} {1}.", serviceProcessName, pp.Id));
                     pp.KillProcess();
                 }
             }
 
             lastStartServiceTime = DateTime.UtcNow;
-            ServiceController service = new("MouseWithoutBordersSvc");
+            ServiceController service = new(serviceName);
 
             try
             {
@@ -73,7 +78,7 @@ internal static class Service
                 {
                     shownErrMessage = true;
                     _ = MessageBox.Show(
-                        Application.ProductName + " is not installed yet, please run Setup.exe first!",
+                        Application.ProductName + " service is not installed. Run PowerToys.MouseWithoutBordersService.exe install (as administrator) first.",
                         Application.ProductName,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
@@ -89,7 +94,7 @@ internal static class Service
                 while (service.Status != ServiceControllerStatus.Stopped && c++ < 5)
                 {
                     Thread.Sleep(1000);
-                    service = new ServiceController("MouseWithoutBordersSvc");
+                    service = new ServiceController(serviceName);
                 }
 
                 if (string.IsNullOrWhiteSpace(desktopToRunMouseWithoutBordersOn))

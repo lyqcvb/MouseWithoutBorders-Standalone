@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="App/MouseWithoutBorders.csproj" />
+  <Project Path="App/Helper/MouseWithoutBordersHelper.csproj" />
+  <Project Path="App/Service/MouseWithoutBordersService.csproj" />
+  <Project Path="Shared/MouseWithoutBorders.Shared.csproj" />
+  <Project Path="MouseWithoutBorders.UnitTests/MouseWithoutBorders.UnitTests.csproj" />
+</Solution>

@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Look at Directory.Build.props in root for common stuff as well -->
-  <Import Project="$(RepoRoot)src\Common.Dotnet.CsWinRT.props" />
-  <Import Project="$(RepoRoot)src\Common.SelfContained.props" />
-
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <TestingPlatformDotNetTestSupport>true</TestingPlatformDotNetTestSupport>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,10 +20,14 @@
 
   <ItemGroup>
     <PackageReference Include="MSTest" />
+    <PackageReference Include="System.IO.Abstractions" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\App\MouseWithoutBorders.csproj" />
+    <ProjectReference Include="..\App\Service\MouseWithoutBordersService.csproj" />
+    <ProjectReference Include="..\Shared\MouseWithoutBorders.Shared.csproj" />
   </ItemGroup>
-
 </Project>

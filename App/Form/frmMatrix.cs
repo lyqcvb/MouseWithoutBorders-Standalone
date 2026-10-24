@@ -45,6 +45,7 @@ namespace MouseWithoutBorders
         private Timer helperTimer;
 #pragma warning restore CA2213
         private bool formShown;
+        private bool settingUpServiceMode;
         private int formOrgHeight;
         private bool matrixOneRow;
 
@@ -795,6 +796,98 @@ namespace MouseWithoutBorders
             }
         }
 
+        private void CheckBoxRunAsService_CheckedChanged(object sender, EventArgs e)
+        {
+            // The check box is also set from the completion callbacks below; those must not
+            // start another install or removal.
+            if (settingUpServiceMode)
+            {
+                return;
+            }
+
+            if (checkBoxRunAsService.Checked)
+            {
+                settingUpServiceMode = true;
+                SetServiceControlsEnabled(false);
+
+                ServiceRegistration.Install(result =>
+                {
+                    // The window can be closed while UAC or the installer is on screen.
+                    if (IsDisposed || Disposing)
+                    {
+                        return;
+                    }
+
+                    settingUpServiceMode = false;
+                    SetServiceControlsEnabled(true);
+
+                    if (result == ServiceInstallResult.Succeeded)
+                    {
+                        Setting.Values.UseService = true;
+                        ShowUpdateMessage();
+                        ServiceRegistration.OfferRestart();
+                        return;
+                    }
+
+                    // Keep the check box in step with the setting instead of leaving it ticked
+                    // for a service that was never registered.
+                    settingUpServiceMode = true;
+                    checkBoxRunAsService.Checked = Setting.Values.UseService;
+                    settingUpServiceMode = false;
+                    Common.ShowToolTip(ServiceRegistration.DescribeFailure(result, "installed"), 10000, ToolTipIcon.Warning, forceEvenIfHidingOldUI: true);
+                });
+
+                return;
+            }
+
+            Setting.Values.UseService = false;
+            ShowUpdateMessage();
+
+            ServiceInstallState state = ServiceRegistration.Query(out _, out _);
+            if (state != ServiceInstallState.InstalledForThisPath)
+            {
+                return;
+            }
+
+            string message = "Remove the " + Application.ProductName + " service as well?\r\n\r\nIt is no longer used once service mode is off.";
+            if (MessageBox.Show(message, Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) != DialogResult.Yes)
+            {
+                Common.ShowToolTip(Application.ProductName + " will no longer use the service. It stays registered until you remove it here or reinstall.", 8000, forceEvenIfHidingOldUI: true);
+                return;
+            }
+
+            SetServiceControlsEnabled(false);
+            ServiceRegistration.Uninstall(result =>
+            {
+                if (IsDisposed || Disposing)
+                {
+                    return;
+                }
+
+                SetServiceControlsEnabled(true);
+
+                if (result != ServiceInstallResult.Succeeded)
+                {
+                    Common.ShowToolTip(ServiceRegistration.DescribeFailure(result, "removed"), 10000, ToolTipIcon.Warning, forceEvenIfHidingOldUI: true);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Re-enables the service check box after an install or removal, unless the policy
+        /// manages it. The window can be closed while the elevated process runs, so a disposed
+        /// control is left alone.
+        /// </summary>
+        private void SetServiceControlsEnabled(bool enabled)
+        {
+            if (IsDisposed || Disposing || checkBoxRunAsService.IsDisposed)
+            {
+                return;
+            }
+
+            checkBoxRunAsService.Enabled = enabled && !Setting.Values.AllowServiceModeIsGpoConfigured;
+        }
+
         private void FrmMatrix_Load(object sender, EventArgs e)
         {
             if (Common.RunWithNoAdminRight)
@@ -829,6 +922,16 @@ namespace MouseWithoutBorders
             checkBoxMouseMoveRelatively.Checked = Setting.Values.MoveMouseRelatively;
             checkBoxClipNetStatus.Checked = Setting.Values.ShowClipNetStatus;
             checkBoxSendLog.Checked = Setting.Values.SendErrorLogV2;
+
+            settingUpServiceMode = true;
+            checkBoxRunAsService.Checked = Setting.Values.UseService;
+            settingUpServiceMode = false;
+
+            if (Setting.Values.AllowServiceModeIsGpoConfigured)
+            {
+                checkBoxRunAsService.Enabled = false;
+                checkBoxRunAsService.Text = checkBoxRunAsService.Text + " [Managed]";
+            }
 
             if (Setting.Values.HotKeySwitchMachine == (int)VK.F1)
             {
