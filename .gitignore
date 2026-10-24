@@ -1,0 +1,35 @@
+# Visual Studio and editor state
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+**/.claude/settings.local.json
+.claude/worktrees/
+
+# Build output and test results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x86/
+x64/
+ARM64/
+artifacts/
+TestResults/
+*.binlog
+*.pdb
+*.obj
+*.pch
+*.log
+
+# Package restore and generated files
+packages/
+vcpkg_installed/
+*.nupkg
+*.nuget.props
+*.nuget.targets
+Generated/
+*.tmp
