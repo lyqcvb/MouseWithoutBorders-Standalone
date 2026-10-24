@@ -222,7 +222,8 @@ namespace MouseWithoutBorders.Class
                 {
                     Event.RealInputEventCount++;
 
-                    if (MachineStuff.NewDesMachineID == Common.MachineID || MachineStuff.NewDesMachineID == ID.ALL)
+                    ID destination = MachineStuff.NewDesMachineID;
+                    if (destination == Common.MachineID || destination == ID.ALL)
                     {
                         local = true;
                         if (Common.MainFormVisible && !DragDrop.IsDropping)
@@ -265,19 +266,17 @@ namespace MouseWithoutBorders.Class
                         }
                         else
                         {
-                            if (MachineStuff.SwitchLocation.Count > 0 && MachineStuff.NewDesMachineID != Common.MachineID && MachineStuff.NewDesMachineID != ID.ALL)
+                            if (MachineStuff.SwitchLocation.TryTake(destination, out var switchPosition))
                             {
-                                MachineStuff.SwitchLocation.Count--;
-
-                                if (MachineStuff.SwitchLocation.X > Event.XY_BY_PIXEL - 100000 || MachineStuff.SwitchLocation.Y > Event.XY_BY_PIXEL - 100000)
+                                if (switchPosition.X > Event.XY_BY_PIXEL - 100000 || switchPosition.Y > Event.XY_BY_PIXEL - 100000)
                                 {
-                                    hookCallbackMouseData.X = MachineStuff.SwitchLocation.X - Event.XY_BY_PIXEL;
-                                    hookCallbackMouseData.Y = MachineStuff.SwitchLocation.Y - Event.XY_BY_PIXEL;
+                                    hookCallbackMouseData.X = switchPosition.X - Event.XY_BY_PIXEL;
+                                    hookCallbackMouseData.Y = switchPosition.Y - Event.XY_BY_PIXEL;
                                 }
                                 else
                                 {
-                                    hookCallbackMouseData.X = (MachineStuff.SwitchLocation.X * Common.ScreenWidth / 65535) + MachineStuff.PrimaryScreenBounds.Left;
-                                    hookCallbackMouseData.Y = (MachineStuff.SwitchLocation.Y * Common.ScreenHeight / 65535) + MachineStuff.PrimaryScreenBounds.Top;
+                                    hookCallbackMouseData.X = (switchPosition.X * Common.ScreenWidth / 65535) + MachineStuff.PrimaryScreenBounds.Left;
+                                    hookCallbackMouseData.Y = (switchPosition.Y * Common.ScreenHeight / 65535) + MachineStuff.PrimaryScreenBounds.Top;
                                 }
 
                                 Common.HideMouseCursor(false);

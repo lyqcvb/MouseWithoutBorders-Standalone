@@ -96,21 +96,19 @@ internal static class Helper
                 }
                 else
                 {
-                    if (MachineStuff.SwitchLocation.Count > 0)
+                    if (MachineStuff.SwitchLocation.TryTake(Common.MachineID, out Point switchPosition))
                     {
-                        MachineStuff.SwitchLocation.Count--;
-
                         // When we want to move mouse by pixels, we add 300k to x and y (search for XY_BY_PIXEL for other related code).
-                        Logger.LogDebug($"+++++ Moving mouse to {MachineStuff.SwitchLocation.X}, {MachineStuff.SwitchLocation.Y}");
+                        Logger.LogDebug($"+++++ Moving mouse to {switchPosition.X}, {switchPosition.Y}");
 
                         // MaxXY = 65535 so 100k is safe.
-                        if (MachineStuff.SwitchLocation.X > Event.XY_BY_PIXEL - 100000 || MachineStuff.SwitchLocation.Y > Event.XY_BY_PIXEL - 100000)
+                        if (switchPosition.X > Event.XY_BY_PIXEL - 100000 || switchPosition.Y > Event.XY_BY_PIXEL - 100000)
                         {
-                            InputSimulation.MoveMouse(MachineStuff.SwitchLocation.X - Event.XY_BY_PIXEL, MachineStuff.SwitchLocation.Y - Event.XY_BY_PIXEL);
+                            InputSimulation.MoveMouse(switchPosition.X - Event.XY_BY_PIXEL, switchPosition.Y - Event.XY_BY_PIXEL);
                         }
                         else
                         {
-                            InputSimulation.MoveMouseEx(MachineStuff.SwitchLocation.X, MachineStuff.SwitchLocation.Y);
+                            InputSimulation.MoveMouseEx(switchPosition.X, switchPosition.Y);
                         }
 
                         Helper.MainFormDot();

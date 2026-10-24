@@ -957,10 +957,8 @@ internal static class Common
                     if (data.Des == ID.NONE || MachineStuff.RemoveDeadMachines(data.Des))
                     {
                         // SwitchToMachine(MachineName.Trim());
+                        MachineStuff.SwitchLocation.Set(MachineID, new Point(Event.XY_BY_PIXEL + Event.myLastX, Event.XY_BY_PIXEL + Event.myLastY));
                         MachineStuff.NewDesMachineID = DesMachineID = MachineID;
-                        MachineStuff.SwitchLocation.X = Event.XY_BY_PIXEL + Event.myLastX;
-                        MachineStuff.SwitchLocation.Y = Event.XY_BY_PIXEL + Event.myLastY;
-                        MachineStuff.SwitchLocation.ResetCount();
                         EvSwitch.Set();
                     }
                 }

@@ -94,7 +94,7 @@ internal static class Event
                 }
             }
 
-            if (MachineStuff.desMachineID != Common.MachineID && MachineStuff.SwitchLocation.Count <= 0)
+            if (MachineStuff.desMachineID != Common.MachineID && !MachineStuff.SwitchLocation.HasPending)
             {
                 MousePackage.Des = MachineStuff.desMachineID;
                 MousePackage.Type = PackageType.Mouse;
@@ -177,11 +177,8 @@ internal static class Event
         }
         else
         {
+            MachineStuff.SwitchLocation.Set(newDesMachineID, desMachineXY);
             MachineStuff.newDesMachineID = newDesMachineID;
-            MachineStuff.SwitchLocation.X = desMachineXY.X;
-            MachineStuff.SwitchLocation.Y = desMachineXY.Y;
-            MachineStuff.SwitchLocation.ResetCount();
-            _ = Common.EvSwitch.Set();
 
             // PostMessage(mainForm.Handle, WM_SWITCH, IntPtr.Zero, IntPtr.Zero);
             if (newDesMachineID != DragDrop.DragMachine)
@@ -232,6 +229,9 @@ internal static class Event
 
                 _ = Interlocked.Increment(ref Common.switchCount);
             }
+
+            // Wake the helper only after the destination and its landing point are published.
+            _ = Common.EvSwitch.Set();
         }
     }
 
